@@ -64,7 +64,7 @@ class CrystalDataset(Dataset):
                 print(f"Skipping {entry.get('material_id', '?')}: {e}")
 
     def len(self):
-        return len(self.processed_file_names)
+        return min(100,len(self.processed_file_names))
 
     def get(self, idx):
         path = os.path.join(self.processed_dir, f"{self.split}_{idx}.pt")
