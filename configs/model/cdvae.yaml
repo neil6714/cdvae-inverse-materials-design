@@ -1,0 +1,9 @@
+hidden_dim: 256
+latent_dim: 256
+num_encoder_layers: 4
+num_decoder_layers: 4
+num_rbf: 64
+cutoff: 6.0
+time_dim: 64
+max_atomic_num: 100
+max_atoms: 20
