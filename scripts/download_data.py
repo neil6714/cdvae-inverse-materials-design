@@ -7,15 +7,17 @@ load_dotenv()
 API_KEY = os.environ.get("MP_API_KEY")
 
 
-def download_mp20(save_dir: str = "data/raw", max_atoms: int = 20, e_hull_max: float = 0.08):
+def download_mp20(save_dir: str = "data/raw", limit: int = 5000):
     os.makedirs(save_dir, exist_ok=True)
 
     with MPRester(API_KEY) as mpr:
-        docs = mpr.summary.search(
-            num_sites=(1, max_atoms),
-            energy_above_hull=(0, e_hull_max),
-            fields=["material_id", "structure", "formation_energy_per_atom", "band_gap"]
+        docs = mpr.materials.summary.search(
+            num_sites=(1, 20),
+            energy_above_hull=(0, 0.08),
+            fields=["material_id", "structure", "formation_energy_per_atom", "band_gap"],
         )
+
+    docs = docs[:limit]
 
     entries = []
     for doc in docs:
