@@ -1,4 +1,4 @@
-%%writefile /kaggle/working/cdvae-inverse-materials-design/scripts/train.py
+
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
