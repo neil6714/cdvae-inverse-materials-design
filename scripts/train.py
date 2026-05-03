@@ -1,3 +1,4 @@
+%%writefile /kaggle/working/cdvae-inverse-materials-design/scripts/train.py
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -5,7 +6,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import hydra
 import pytorch_lightning as pl
 from omegaconf import DictConfig
-from hydra.utils import get_original_cwd
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 
 from cdvae.models.cdvae import CDVAE, BetaAnnealer
@@ -16,11 +16,8 @@ from cdvae.data.datamodule import CrystalDataModule
 def train(cfg: DictConfig):
     pl.seed_everything(cfg.seed, workers=True)
 
-    # Hydra changes cwd to outputs/; resolve data path relative to project root
-    cfg.data.root = os.path.join(get_original_cwd(), cfg.data.root)
-
     datamodule = CrystalDataModule(
-        root=cfg.data.root,
+        root="/kaggle/working/cdvae-inverse-materials-design/data",
         batch_size=cfg.data.batch_size,
         num_workers=cfg.data.num_workers,
         cutoff=cfg.data.cutoff,
@@ -35,10 +32,13 @@ def train(cfg: DictConfig):
             warmup_steps=cfg.training.warmup_steps,
         ),
         ModelCheckpoint(
-            monitor="val/l_recon",
-            save_top_k=3,
+            dirpath="/kaggle/working/checkpoints",
+            monitor="val/loss",
+            save_top_k=5,
             mode="min",
-            filename="cdvae-{epoch:02d}-{val_l_recon:.4f}",
+            filename="cdvae-{epoch:02d}-{val_loss:.4f}",
+            save_last=True,
+            every_n_epochs=1,  # save every single epoch
         ),
         LearningRateMonitor(logging_interval="epoch"),
     ]
@@ -47,8 +47,9 @@ def train(cfg: DictConfig):
         max_epochs=cfg.training.max_epochs,
         callbacks=callbacks,
         gradient_clip_val=cfg.training.gradient_clip_val,
-        log_every_n_steps=50,
+        log_every_n_steps=1,
         enable_progress_bar=True,
+        default_root_dir="/kaggle/working/cdvae-inverse-materials-design",
     )
 
     trainer.fit(model, datamodule)
